@@ -1,0 +1,6 @@
+git add .
+
+git commit -m "Set background to transparent"
+
+git push
+
