@@ -217,7 +217,7 @@ export default function ChatUI() {
           padding: 0 26px;
           border-radius: 20px;
           border: none;
-          background-color: #3b82f6;
+          background-color: transparent;
           color: white;
           font-size: 16px;
           cursor: pointer;
