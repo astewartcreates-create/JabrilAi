@@ -83,7 +83,7 @@ export default function ChatUI() {
           display: flex;
           flex-direction: column;
           height: 80vh;
-          background-color: #181818;
+          background-color: transparent;
           color: #eee;
           box-shadow: 0 0 15px rgba(0,0,0,0.8);
         }
@@ -188,7 +188,7 @@ export default function ChatUI() {
           display: flex;
           border-top: 1px solid #444;
           padding: 12px 16px;
-          background-color: transparent;
+          background-color: #222;
           border-bottom-left-radius: 10px;
           border-bottom-right-radius: 10px;
         }
