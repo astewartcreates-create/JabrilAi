@@ -75,17 +75,17 @@ export default function ChatUI() {
       <style>{`
         /* Container */
         .chat-container {
-  max-width: 800px;
-  margin: 0 auto; /* remove the 40px top margin */
+  width: 100%;
+  height: 100vh; /* full viewport height */
+  margin: 0; /* no margin */
   font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
-  border: 1px solid #444;
-  border-radius: 10px;
+  border: none; /* remove border so it blends edge-to-edge */
+  border-radius: 0; /* no rounded corners for full-screen look */
   display: flex;
   flex-direction: column;
-  height: 100vh; /* full viewport height */
-  background-color: transparent;
+  background-color: transparent; /* keep transparent background */
   color: #eee;
-  box-shadow: 0 0 15px rgba(0,0,0,0.8);
+  box-shadow: none; /* remove shadow for clean look */
 }
 
         /* Messages area */
