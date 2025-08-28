@@ -54,8 +54,9 @@ export async function POST(req) {
 
     // Return the reply, fallback to raw data string if no reply found
     return NextResponse.json({
-      reply: data.reply || data.answer || JSON.stringify(data),
-    });
+  reply: data.reply || data.answer || JSON.stringify(data),
+  history: data.history || []
+});
   } catch (error) {
     console.error("API route error:", error);
     return NextResponse.json(
