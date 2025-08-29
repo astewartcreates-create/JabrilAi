@@ -1,8 +1,11 @@
 export async function POST(req) {
   const body = await req.json();
+  console.log("Incoming payload:", body);
+
   const { sessionId, chatInput } = body;
 
   if (!chatInput) {
+    console.log("Missing chatInput");
     return new Response(JSON.stringify({ error: 'Missing chatInput' }), {
       status: 400,
       headers: { 'Content-Type': 'application/json' },
@@ -18,20 +21,22 @@ export async function POST(req) {
       body: JSON.stringify({ sessionId, chatInput }),
     });
 
+    console.log("n8n response status:", response.status);
     const data = await response.json();
+    console.log("n8n response body:", data);
+
     return new Response(JSON.stringify(data), {
       status: 200,
       headers: { 'Content-Type': 'application/json' },
     });
   } catch (err) {
-    console.error('Error forwarding to n8n:', err);
+    console.error("Error forwarding to n8n:", err);
     return new Response(JSON.stringify({ error: 'Internal server error' }), {
       status: 500,
       headers: { 'Content-Type': 'application/json' },
     });
   }
 }
-
 
 
 
