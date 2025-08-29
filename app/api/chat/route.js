@@ -1,34 +1,12 @@
-import { NextResponse } from "next/server";
+import { NextResponse } from 'next/server';
 
-const N8N_WEBHOOK_URL = process.env.N8N_WEBHOOK_URL;
+const N8N_WEBHOOK_URL = "https://anthonyai.app.n8n.cloud/webhook/e4cf1ab3-8708-404a-8e69-62d12f837506/chat";
 
-export async function POST(req) {
+export async function POST(request) {
   try {
-    if (!N8N_WEBHOOK_URL) {
-      return NextResponse.json(
-        { error: "N8N_WEBHOOK_URL is not configured in env" },
-        { status: 500 }
-      );
-    }
+    const bodyPayload = await request.json();
 
-    const { messages, sessionId } = await req.json();
-
-    if (!messages || !Array.isArray(messages)) {
-      return NextResponse.json(
-        { error: "'messages' must be a non-empty array" },
-        { status: 400 }
-      );
-    }
-
-    // Convert array of messages to a single string with role labels
-    const chatInput = messages
-      .map((m) => `${m.role === "user" ? "User" : "Assistant"}: ${m.content}`)
-      .join("\n");
-
-    const bodyPayload = {
-      chatInput,
-      sessionId,
-    };
+    console.log("Incoming request to Jabril route:", bodyPayload);
 
     const res = await fetch(N8N_WEBHOOK_URL, {
       method: "POST",
@@ -59,7 +37,6 @@ export async function POST(req) {
       );
     }
 
-    // Ensure the response has a usable reply
     const reply = data.reply || data.output?.reply || data.output || rawText;
     const history = data.history || data.output?.history || [];
 
