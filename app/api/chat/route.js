@@ -1,39 +1,58 @@
 export async function POST(req) {
-  const body = await req.json();
-  console.log("Incoming payload:", body);
-
-  const { sessionId, chatInput } = body;
-
-  if (!chatInput) {
-    console.log("Missing chatInput");
-    return new Response(JSON.stringify({ error: 'Missing chatInput' }), {
-      status: 400,
-      headers: { 'Content-Type': 'application/json' },
-    });
-  }
-
   try {
-    const response = await fetch('https://antoniayii.app.n8n.cloud/webhook/4cfa1b3-8708-404a-8e69-8621d82359ce/chat', {
-      method: 'POST',
+    // Parse incoming request
+    const body = await req.json();
+    console.log("Incoming payload:", body);
+
+    const { sessionId, chatInput } = body;
+
+    // Validate input
+    if (!chatInput) {
+      console.log("Missing chatInput");
+      return new Response(JSON.stringify({ error: "Missing chatInput" }), {
+        status: 400,
+        headers: { "Content-Type": "application/json" },
+      });
+    }
+
+    // Prepare payload for n8n
+    const payload = { sessionId, chatInput };
+    console.log("Forwarding to n8n with payload:", payload);
+
+    // Send to n8n webhook
+    const response = await fetch("https://anthonynai.app.n8n.cloud/webhook/chat", {
+      method: "POST",
       headers: {
-        'Content-Type': 'application/json',
+        "Content-Type": "application/json",
       },
-      body: JSON.stringify({ sessionId, chatInput }),
+      body: JSON.stringify(payload),
     });
 
-    console.log("n8n response status:", response.status);
-    const data = await response.json();
-    console.log("n8n response body:", data);
+    const raw = await response.text();
+    console.log("n8n raw response:", raw);
 
+    // Try to parse JSON
+    let data;
+    try {
+      data = JSON.parse(raw);
+    } catch (err) {
+      console.log("Failed to parse n8n response");
+      return new Response(JSON.stringify({ error: "Invalid JSON from n8n", raw }), {
+        status: 500,
+        headers: { "Content-Type": "application/json" },
+      });
+    }
+
+    // Return successful response
     return new Response(JSON.stringify(data), {
       status: 200,
-      headers: { 'Content-Type': 'application/json' },
+      headers: { "Content-Type": "application/json" },
     });
   } catch (err) {
-    console.error("Error forwarding to n8n:", err);
-    return new Response(JSON.stringify({ error: 'Internal server error' }), {
+    console.error("Route crashed:", err);
+    return new Response(JSON.stringify({ error: err.message || "Internal server error" }), {
       status: 500,
-      headers: { 'Content-Type': 'application/json' },
+      headers: { "Content-Type": "application/json" },
     });
   }
 }
