@@ -20,9 +20,13 @@ export async function POST(req) {
       );
     }
 
-    // Send messages as chatInput — n8n expects that key
+    // Convert array of messages to a single string with role labels
+    const chatInput = messages
+      .map((m) => `${m.role === "user" ? "User" : "Assistant"}: ${m.content}`)
+      .join("\n");
+
     const bodyPayload = {
-      chatInput: messages,
+      chatInput,
       sessionId,
     };
 
@@ -32,31 +36,34 @@ export async function POST(req) {
       body: JSON.stringify(bodyPayload),
     });
 
-    const text = await res.text();
-    console.log("n8n raw response:", text);
+    const rawText = await res.text();
+    console.log("n8n raw response:", rawText);
 
     if (!res.ok) {
       return NextResponse.json(
-        { error: `n8n webhook error: ${res.status} ${res.statusText}`, details: text },
+        {
+          error: `n8n webhook error: ${res.status} ${res.statusText}`,
+          details: rawText,
+        },
         { status: res.status }
       );
     }
 
     let data;
     try {
-      data = JSON.parse(text);
+      data = JSON.parse(rawText);
     } catch {
       return NextResponse.json(
-        { error: "Invalid JSON returned from n8n", raw: text },
+        { error: "Invalid JSON returned from n8n", raw: rawText },
         { status: 500 }
       );
     }
 
-    // Return the reply, fallback to raw data string if no reply found
-    return NextResponse.json({
-  reply: data.reply || data.answer || JSON.stringify(data),
-  history: data.history || []
-});
+    // Ensure the response has a usable reply
+    const reply = data.reply || data.output?.reply || data.output || rawText;
+    const history = data.history || data.output?.history || [];
+
+    return NextResponse.json({ reply, history });
   } catch (error) {
     console.error("API route error:", error);
     return NextResponse.json(
