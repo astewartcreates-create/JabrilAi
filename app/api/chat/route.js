@@ -20,7 +20,7 @@ export async function POST(req) {
     console.log("Forwarding to n8n with payload:", payload);
 
     // Send to n8n webhook
-    const response = await fetch("https://anthonyai.app.n8n.cloud/webhook/05754c4d-e148-446a-b787-67a81696d679/chat", {
+    const response = await fetch("https://anthonyai.app.n8n.cloud/webhook/05754c4d-e148-446a-b787-67a81696d679", {
       method: "POST",
       headers: {
         "Content-Type": "application/json",
@@ -28,6 +28,11 @@ export async function POST(req) {
       body: JSON.stringify(payload),
     });
 
+    // Log response status and headers
+    console.log("n8n status:", response.status);
+    console.log("n8n headers:", Object.fromEntries(response.headers.entries()));
+
+    // Get raw body
     const raw = await response.text();
     console.log("n8n raw response:", raw);
 
@@ -36,8 +41,8 @@ export async function POST(req) {
     try {
       data = JSON.parse(raw);
     } catch (err) {
-      console.log("Failed to parse n8n response");
-      return new Response(JSON.stringify({ error: "Invalid JSON from n8n", raw }), {
+      console.log("Failed to parse n8n response as JSON");
+      return new Response(JSON.stringify({ error: "Invalid JSON from n8n", status: response.status, raw }), {
         status: 500,
         headers: { "Content-Type": "application/json" },
       });
@@ -48,6 +53,7 @@ export async function POST(req) {
       status: 200,
       headers: { "Content-Type": "application/json" },
     });
+
   } catch (err) {
     console.error("Route crashed:", err);
     return new Response(JSON.stringify({ error: err.message || "Internal server error" }), {
@@ -56,7 +62,3 @@ export async function POST(req) {
     });
   }
 }
-
-
-
-
