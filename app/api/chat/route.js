@@ -1,67 +1,49 @@
+import { NextResponse } from 'next/server';
+
+// Optional: import your assistant logic here
+// import { runJabrilAgent } from '@/lib/agents/jabril'; // adjust path as needed
+
 export async function POST(req) {
   try {
-    // Parse incoming request
     const body = await req.json();
-    console.log("📨 Incoming payload:", body);
+    const { messages, sessionId } = body;
 
-    const { sessionId, chatInput } = body;
-
-    // Validate input
-    if (!chatInput || typeof chatInput !== "string") {
-      console.log("❌ Missing or invalid chatInput");
-      return new Response(JSON.stringify({ error: "Missing or invalid chatInput" }), {
-        status: 400,
-        headers: { "Content-Type": "application/json" },
-      });
+    // Validate messages array
+    if (!messages || !Array.isArray(messages)) {
+      return NextResponse.json(
+        { error: 'Missing or invalid messages array' },
+        { status: 400 }
+      );
     }
 
-    // Prepare payload for n8n
-    const payload = { sessionId, chatInput };
-    console.log("🚀 Forwarding to n8n with payload:", payload);
-
-    // Send to n8n webhook
-    const response = await fetch("https://anthonyai.app.n8n.cloud/webhook/797e0dd0-7f93-4843-8bd2-fc3dbd80d4bb", {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify(payload),
-    });
-
-    // Log response status and headers
-    console.log("🌐 n8n status:", response.status);
-    console.log("📦 n8n headers:", Object.fromEntries(response.headers.entries()));
-
-    // Get raw body
-    const raw = await response.text();
-    console.log("🧾 n8n raw response:", raw);
-
-    // Try to parse JSON
-    let data;
-    try {
-      data = JSON.parse(raw);
-    } catch (err) {
-      console.log("⚠️ Failed to parse n8n response as JSON");
-      return new Response(JSON.stringify({
-        error: "Invalid JSON from n8n",
-        raw,
-      }), {
-        status: 500,
-        headers: { "Content-Type": "application/json" },
-      });
+    // Extract last user message
+    const lastUserMessage = messages[messages.length - 1];
+    if (
+      !lastUserMessage ||
+      lastUserMessage.role !== 'user' ||
+      typeof lastUserMessage.text !== 'string' ||
+      !lastUserMessage.text.trim()
+    ) {
+      return NextResponse.json(
+        { error: 'Missing or invalid user message' },
+        { status: 400 }
+      );
     }
 
-    // Return successful response
-    return new Response(JSON.stringify(data), {
-      status: 200,
-      headers: { "Content-Type": "application/json" },
+    const chatInput = lastUserMessage.text.trim();
+
+    // 🔮 Replace this with your actual assistant logic
+    const reply = await runJabrilAgent(chatInput, {
+      sessionId,
+      history: messages,
     });
 
+    return NextResponse.json({ reply }, { status: 200 });
   } catch (err) {
-    console.error("🔥 Route crashed:", err);
-    return new Response(JSON.stringify({
-      error: err.message || "Internal server error",
-    }), {
-      status: 500,
-      headers: { "Content-Type": "application/json" },
-    });
+    console.error('Chat API error:', err);
+    return NextResponse.json(
+      { error: 'Internal server error' },
+      { status: 500 }
+    );
   }
 }
