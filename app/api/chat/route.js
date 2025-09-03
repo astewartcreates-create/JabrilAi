@@ -20,7 +20,7 @@ export async function POST(req) {
     console.log("Forwarding to n8n with payload:", payload);
 
     // Send to n8n webhook
-    const response = await fetch("https://anthonyai.app.n8n.cloud/webhook/05754c4d-e148-446a-b787-67a81696d679", {
+    const response = await fetch("https://anthonyai.app.n8n.cloud/webhook/05754c4d-e148-446a-b787-67a81696d679/chat", {
       method: "POST",
       headers: {
         "Content-Type": "application/json",
