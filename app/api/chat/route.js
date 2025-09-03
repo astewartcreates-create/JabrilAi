@@ -1,47 +1,31 @@
 // /app/api/chat/route.js
 
+import { createJabrilAgent } from '@/lib/agents/Jabril';
+
 export async function POST(req) {
-  const { ChatOpenAI } = await import('@langchain/openai');
-  const { BufferMemory } = await import('@langchain/core/memory');
-  const { PromptTemplate } = await import('@langchain/core/prompts');
-  const { ConversationChain } = await import('@langchain/core/chains');
+  try {
+    const body = await req.json();
+    const userInput = body.input?.trim();
 
-  const body = await req.json();
-  const userInput = body.input || '';
+    if (!userInput) {
+      return new Response(JSON.stringify({ error: 'Missing input' }), {
+        status: 400,
+        headers: { 'Content-Type': 'application/json' },
+      });
+    }
 
-  const jabrilPrompt = PromptTemplate.fromTemplate(`
-You are Jabril, an AI assistant for the Black Civilization Research Archive.
-You speak with cultural awareness, clarity, and warmth.
-Answer questions with historical depth and relevance.
-If the question is unclear, ask for clarification.
+    const agent = createJabrilAgent();
+    const response = await agent.call({ input: userInput });
 
-Chat History:
-{history}
-
-User: {input}
-Jabril:
-  `);
-
-  const model = new ChatOpenAI({
-    temperature: 0.7,
-    modelName: 'gpt-4',
-  });
-
-  const memory = new BufferMemory({
-    returnMessages: true,
-    memoryKey: 'history',
-  });
-
-  const chain = new ConversationChain({
-    llm: model,
-    prompt: jabrilPrompt,
-    memory,
-  });
-
-  const response = await chain.call({ input: userInput });
-
-  return new Response(JSON.stringify({ output: response.response }), {
-    status: 200,
-    headers: { 'Content-Type': 'application/json' },
-  });
+    return new Response(JSON.stringify({ output: response.response }), {
+      status: 200,
+      headers: { 'Content-Type': 'application/json' },
+    });
+  } catch (err) {
+    console.error('Agent error:', err);
+    return new Response(JSON.stringify({ error: 'Internal server error' }), {
+      status: 500,
+      headers: { 'Content-Type': 'application/json' },
+    });
+  }
 }
