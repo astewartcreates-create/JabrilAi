@@ -9,6 +9,7 @@
     "lint": "next lint"
   },
   "dependencies": {
+    "@langchain/community": "^0.3.54",
     "@langchain/core": "^0.3.73",
     "@langchain/openai": "^0.6.11",
     "framer-motion": "^12.23.12",
