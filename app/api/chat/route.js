@@ -1,6 +1,6 @@
 // /app/api/chat/route.js
 
-import { createJabrilAgent } from '@/lib/agents/Jabril';
+import { createJabrilAgent } from '@/lib/agents/jabril';
 
 export async function POST(req) {
   try {
