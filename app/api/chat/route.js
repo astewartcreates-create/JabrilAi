@@ -1,47 +1,47 @@
 // /app/api/chat/route.js
 
-import { NextResponse } from 'next/server';
-import { createJabrilAgent } from '@/lib/agents/Jabril'; // Make sure this path matches your structure
-
 export async function POST(req) {
-  try {
-    const body = await req.json();
-    const { messages, sessionId } = body;
+  const { ChatOpenAI } = await import('@langchain/openai');
+  const { BufferMemory } = await import('@langchain/core/memory');
+  const { PromptTemplate } = await import('@langchain/core/prompts');
+  const { ConversationChain } = await import('@langchain/core/chains');
 
-    // Validate messages array
-    if (!messages || !Array.isArray(messages)) {
-      return NextResponse.json(
-        { error: 'Missing or invalid messages array' },
-        { status: 400 }
-      );
-    }
+  const body = await req.json();
+  const userInput = body.input || '';
 
-    // Extract last user message
-    const lastUserMessage = messages[messages.length - 1];
-    if (
-      !lastUserMessage ||
-      lastUserMessage.role !== 'user' ||
-      typeof lastUserMessage.text !== 'string' ||
-      !lastUserMessage.text.trim()
-    ) {
-      return NextResponse.json(
-        { error: 'Missing or invalid user message' },
-        { status: 400 }
-      );
-    }
+  const jabrilPrompt = PromptTemplate.fromTemplate(`
+You are Jabril, an AI assistant for the Black Civilization Research Archive.
+You speak with cultural awareness, clarity, and warmth.
+Answer questions with historical depth and relevance.
+If the question is unclear, ask for clarification.
 
-    const chatInput = lastUserMessage.text.trim();
+Chat History:
+{history}
 
-    // ✅ Create and invoke the Jabril agent
-    const agent = createJabrilAgent();
-    const result = await agent.call({ input: chatInput });
+User: {input}
+Jabril:
+  `);
 
-    return NextResponse.json({ reply: result?.response || result }, { status: 200 });
-  } catch (err) {
-    console.error('Chat API error:', err);
-    return NextResponse.json(
-      { error: 'Internal server error' },
-      { status: 500 }
-    );
-  }
+  const model = new ChatOpenAI({
+    temperature: 0.7,
+    modelName: 'gpt-4',
+  });
+
+  const memory = new BufferMemory({
+    returnMessages: true,
+    memoryKey: 'history',
+  });
+
+  const chain = new ConversationChain({
+    llm: model,
+    prompt: jabrilPrompt,
+    memory,
+  });
+
+  const response = await chain.call({ input: userInput });
+
+  return new Response(JSON.stringify({ output: response.response }), {
+    status: 200,
+    headers: { 'Content-Type': 'application/json' },
+  });
 }
