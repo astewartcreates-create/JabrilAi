@@ -1,7 +1,7 @@
-import { NextResponse } from 'next/server';
+// /app/api/chat/route.js
 
-// Replace this with your actual assistant logic
-// import { runJabrilAgent } from '@/lib/agents/jabril'; // adjust path as needed
+import { NextResponse } from 'next/server';
+import { createJabrilAgent } from '@/lib/agents/Jabril'; // Make sure this path matches your project structure
 
 export async function POST(req) {
   try {
@@ -32,14 +32,14 @@ export async function POST(req) {
 
     const chatInput = lastUserMessage.text.trim();
 
-    // 🔮 Replace this with your assistant logic
-    // You can pass full history and sessionId for context-aware replies
-    const reply = await runJabrilAgent(chatInput, {
-      sessionId,
-      history: messages,
-    });
+    // Create the Jabril agent
+    const agent = createJabrilAgent();
 
-    return NextResponse.json({ reply }, { status: 200 });
+    // Call the agent with the input
+    const result = await agent.call({ input: chatInput });
+
+    // Return the response
+    return NextResponse.json({ reply: result?.response || result }, { status: 200 });
   } catch (err) {
     console.error('Chat API error:', err);
     return NextResponse.json(
