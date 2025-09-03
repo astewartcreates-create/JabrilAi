@@ -2,13 +2,13 @@ export async function POST(req) {
   try {
     // Parse incoming request
     const body = await req.json();
-    console.log("Incoming payload:", body);
+    console.log("📨 Incoming payload:", body);
 
     const { sessionId, chatInput } = body;
 
     // Validate input
     if (!chatInput || typeof chatInput !== "string") {
-      console.log("Missing or invalid chatInput");
+      console.log("❌ Missing or invalid chatInput");
       return new Response(JSON.stringify({ error: "Missing or invalid chatInput" }), {
         status: 400,
         headers: { "Content-Type": "application/json" },
@@ -17,7 +17,7 @@ export async function POST(req) {
 
     // Prepare payload for n8n
     const payload = { sessionId, chatInput };
-    console.log("Forwarding to n8n with payload:", payload);
+    console.log("🚀 Forwarding to n8n with payload:", payload);
 
     // Send to n8n webhook
     const response = await fetch("https://anthonyai.app.n8n.cloud/webhook/797e0dd0-7f93-4843-8bd2-fc3dbd80d4bb", {
@@ -27,22 +27,21 @@ export async function POST(req) {
     });
 
     // Log response status and headers
-    console.log("n8n status:", response.status);
-    console.log("n8n headers:", Object.fromEntries(response.headers.entries()));
+    console.log("🌐 n8n status:", response.status);
+    console.log("📦 n8n headers:", Object.fromEntries(response.headers.entries()));
 
     // Get raw body
     const raw = await response.text();
-    console.log("n8n raw response:", raw);
+    console.log("🧾 n8n raw response:", raw);
 
     // Try to parse JSON
     let data;
     try {
       data = JSON.parse(raw);
     } catch (err) {
-      console.log("Failed to parse n8n response as JSON");
+      console.log("⚠️ Failed to parse n8n response as JSON");
       return new Response(JSON.stringify({
         error: "Invalid JSON from n8n",
-        status: response.status,
         raw,
       }), {
         status: 500,
@@ -57,7 +56,7 @@ export async function POST(req) {
     });
 
   } catch (err) {
-    console.error("Route crashed:", err);
+    console.error("🔥 Route crashed:", err);
     return new Response(JSON.stringify({
       error: err.message || "Internal server error",
     }), {
