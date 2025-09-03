@@ -1,7 +1,7 @@
 // /app/api/chat/route.js
 
 import { NextResponse } from 'next/server';
-import { createJabrilAgent } from '@/lib/agents/Jabril'; // Make sure this path matches your project structure
+import { createJabrilAgent } from '@/lib/agents/Jabril'; // Make sure this path matches your structure
 
 export async function POST(req) {
   try {
@@ -32,13 +32,10 @@ export async function POST(req) {
 
     const chatInput = lastUserMessage.text.trim();
 
-    // Create the Jabril agent
+    // ✅ Create and invoke the Jabril agent
     const agent = createJabrilAgent();
-
-    // Call the agent with the input
     const result = await agent.call({ input: chatInput });
 
-    // Return the response
     return NextResponse.json({ reply: result?.response || result }, { status: 200 });
   } catch (err) {
     console.error('Chat API error:', err);
