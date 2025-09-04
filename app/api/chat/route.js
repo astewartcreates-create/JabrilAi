@@ -1,32 +1,32 @@
-// /app/api/chat/route.js
-// Updated
+import { createJabrilAgent } from "@/lib/agents/jabrilAgent";
 
-import { createJabrilAgent } from '@/lib/agents/jabrilAgent';
+export default async function handler(req, res) {
+  if (req.method !== "POST") {
+    return res.status(405).json({ error: "Method not allowed" });
+  }
 
-export async function POST(req) {
+  const { input, sessionId } = req.body;
+
+  console.log("Incoming request:", { input, sessionId });
+
+  if (!input || !sessionId) {
+    console.log("Missing input or sessionId");
+    return res.status(400).json({ error: "Missing input or sessionId" });
+  }
+
   try {
-    const body = await req.json();
-    const userInput = body.input?.trim();
+    const jabrilAgent = createJabrilAgent();
 
-    if (!userInput) {
-      return new Response(JSON.stringify({ error: 'Missing input' }), {
-        status: 400,
-        headers: { 'Content-Type': 'application/json' },
-      });
-    }
+    const response = await jabrilAgent.call({ input });
 
-    const agent = createJabrilAgent();
-    const response = await agent.call({ input: userInput });
+    console.log("Agent response:", response);
 
-    return new Response(JSON.stringify({ output: response.response }), {
-      status: 200,
-      headers: { 'Content-Type': 'application/json' },
+    res.status(200).json({
+      output: response.response,
+      sessionId,
     });
-  } catch (err) {
-    console.error('Agent error:', err);
-    return new Response(JSON.stringify({ error: 'Internal server error' }), {
-      status: 500,
-      headers: { 'Content-Type': 'application/json' },
-    });
+  } catch (error) {
+    console.error("Jabril agent error:", error);
+    res.status(500).json({ error: "Internal server error" });
   }
 }
